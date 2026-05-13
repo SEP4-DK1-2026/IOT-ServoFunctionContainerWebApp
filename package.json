@@ -12,10 +12,12 @@
   },
   "dependencies": {
     "@azure/functions": "^4.0.0",
-    "dotenv": "^17.4.2"
+    "dotenv": "^17.4.2",
+    "pg": "^8.11.0"
   },
   "devDependencies": {
     "@types/node": "^20.x",
+    "@types/pg": "^8.11.0",
     "rimraf": "^5.0.0",
     "typescript": "^5.0.0"
   },
