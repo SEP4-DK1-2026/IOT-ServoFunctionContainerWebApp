@@ -6,7 +6,7 @@ import {
 } from "@azure/functions";
 import { Pool } from "pg";
 
-// Postgres connection pool - bruger process.env sat i src/index.ts via dotenv.config()
+// Postgres connection pool - bruger process.env sat i src/index.ts via dotenv.config() ABE GGGG
 const pool = new Pool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
