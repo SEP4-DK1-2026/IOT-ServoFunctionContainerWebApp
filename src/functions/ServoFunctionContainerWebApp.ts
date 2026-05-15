@@ -22,10 +22,8 @@ function unixTimestamp() {
 
 // Database query for at tjekke om det vil regne i næste time
 // Bruger promise for placeholder, da det er en asynkron operation
-//ret til : async function willRainNextHour(): Promise<boolean> {
-async function willRainNextHour(context: InvocationContext): Promise<{
+async function willRainNextHour(): Promise<{
   rainNextHour: boolean;
-  predictedTime?: number;
   temperature: number;
 }> {
   //Hent nuværende unix-tid
@@ -43,23 +41,16 @@ async function willRainNextHour(context: InvocationContext): Promise<{
 
   const res = await pool.query(sql, [now, now + 7200]); // 7200 sekunder for at give lidt margin
 
-  // Hvis der ingen fremtidsdata er, returner false
   if (res.rows.length === 0) {
-    context.log("No future weather predictions found after:", now);
-    return { rainNextHour: false, temperature: undefined };
+    return {
+      rainNextHour: false,
+      temperature: 0,
+    };
   }
-
-  //debugging
   const row = res.rows[0];
-  const predictedTime = Number(row.predicted_time);
-  const precipitation = Number(row.precipitation);
-  context.log("Selected predicted_time:", predictedTime);
-
   // Tjek precipitation-værdien for den næste forecast
-  //return Number(res.rows[0].precipitation) >= 0.01;
   return {
-    rainNextHour: precipitation >= 0.01,
-    predictedTime,
+    rainNextHour: Number(row.precipitation) >= 0.01,
     temperature: Number(row.temperature),
   };
 }
@@ -71,24 +62,15 @@ export async function ServoFunctionContainerWebApp(
   context: InvocationContext,
 ): Promise<HttpResponseInit> {
   try {
-    //const rainNextHour = await willRainNextHour(); 
-    const result = await willRainNextHour(context); //context for debug
+    const result = await willRainNextHour();
     // Arduino'en læser dette svar og beslutter selv, hvad den skal gøre
     return {
       status: 200,
       headers: {
         "Content-Type": "application/json", //Fortæller at svaret er i JSON-format, så den kan parses.
-      } /*
-      body: JSON.stringify({
-        rainNextHour,
-        action: rainNextHour ? "dosomething" : "donothing",
-        predictedTime: row.predicted_time,
-      }),
-      */,
+      },
       body: JSON.stringify({
         rainNextHour: result.rainNextHour,
-        action: result.rainNextHour ? "dosomething" : "donothing",
-        predictedTime: result.predictedTime,
         temperature: result.temperature,
       }),
     };
